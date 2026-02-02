@@ -1,33 +1,70 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Tabs } from "expo-router";
+import React from "react";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { HapticTab } from "@/components/haptic-tab";
+import { useCartStore } from "@/store/cart";
+
+const COFFEE_TINT = "#A0522D";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const itemCount = useCartStore((s) => s.getItemCount());
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: COFFEE_TINT,
+        tabBarInactiveTintColor: "#9CA3AF",
         headerShown: false,
         tabBarButton: HapticTab,
-      }}>
+        tabBarStyle: {
+          backgroundColor: "#FFFFFF",
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Home",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="home" size={26} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: "Favorites",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="favorite-border" size={26} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="cart"
+        options={{
+          title: "Cart",
+          tabBarBadge: itemCount > 0 ? itemCount : undefined,
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="shopping-cart" size={26} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: "Notifications",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="notifications-none" size={26} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          href: null,
         }}
       />
     </Tabs>
