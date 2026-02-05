@@ -77,3 +77,52 @@ export async function fetchCoffeeById(id: string): Promise<Coffee | null> {
     throw new Error("Gagal mengambil detail coffee");
   }
 }
+
+// --- Order API ---
+
+export interface OrderItemPayload {
+  coffeeId: string;
+  name: string;
+  description: string;
+  price: string;
+  size: string;
+  quantity: number;
+}
+
+export interface DeliveryAddressPayload {
+  street: string;
+  fullAddress: string;
+  city?: string;
+  region?: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface CreateOrderPayload {
+  items: OrderItemPayload[];
+  deliveryType: "deliver" | "pickup";
+  address?: DeliveryAddressPayload;
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+}
+
+export interface CreateOrderResponse {
+  data: {
+    id: string;
+    items: OrderItemPayload[];
+    deliveryType: string;
+    subtotal: number;
+    deliveryFee: number;
+    total: number;
+    status: string;
+  };
+  message: string;
+}
+
+export async function createOrder(
+  payload: CreateOrderPayload
+): Promise<CreateOrderResponse> {
+  const res = await api.post<CreateOrderResponse>("/api/orders", payload);
+  return res.data;
+}

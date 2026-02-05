@@ -1,25 +1,16 @@
-import { Image } from "expo-image";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useRef, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Button, SegmentedButtons, Surface, Text } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  Button,
-  SegmentedButtons,
-  Surface,
-  Text,
-} from "react-native-paper";
 
+import { useDeliveryAddress } from "@/hooks/useDeliveryAddress";
+import { createOrder } from "@/lib/api";
 import { useAddressStore } from "@/store/address";
 import { useCartStore } from "@/store/cart";
-import { useDeliveryAddress } from "@/hooks/useDeliveryAddress";
 
 const COFFEE_TINT = "#A0522D";
 const DELIVERY_FEE_ORIGINAL = 2.0;
@@ -31,11 +22,16 @@ export default function OrderScreen() {
   const getDisplayAddress = useAddressStore((s) => s.getDisplayAddress);
   const getShortAddress = useAddressStore((s) => s.getShortAddress);
   useDeliveryAddress();
-  const [deliveryType, setDeliveryType] = useState<"deliver" | "pickup">("deliver");
+  const [deliveryType, setDeliveryType] = useState<"deliver" | "pickup">(
+    "deliver"
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
   const isPlacingOrder = useRef(false);
 
   const displayAddress = getDisplayAddress();
   const shortAddress = getShortAddress();
+  const address = useAddressStore((s) => s.address);
 
   const subtotal = getTotal();
   const deliveryFee = deliveryType === "deliver" ? DELIVERY_FEE_DISCOUNTED : 0;
@@ -54,12 +50,19 @@ export default function OrderScreen() {
   }
 
   return (
-    <Surface style={[styles.container, { paddingTop: insets.top }]} elevation={0}>
+    <Surface
+      style={[styles.container, { paddingTop: insets.top }]}
+      elevation={0}
+    >
       <StatusBar style="dark" />
 
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backButton}
+          hitSlop={12}
+        >
           <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </Pressable>
         <Text variant="titleLarge" style={styles.headerTitle}>
@@ -110,7 +113,11 @@ export default function OrderScreen() {
                   </Text>
                 </Pressable>
                 <Pressable style={styles.addressButton}>
-                  <MaterialIcons name="note-add" size={18} color={COFFEE_TINT} />
+                  <MaterialIcons
+                    name="note-add"
+                    size={18}
+                    color={COFFEE_TINT}
+                  />
                   <Text variant="labelLarge" style={styles.addressButtonText}>
                     Add Note
                   </Text>
@@ -139,9 +146,7 @@ export default function OrderScreen() {
                 <View style={styles.quantityRow}>
                   <Pressable
                     style={styles.quantityBtn}
-                    onPress={() =>
-                      updateQuantity(item.id, item.quantity - 1)
-                    }
+                    onPress={() => updateQuantity(item.id, item.quantity - 1)}
                   >
                     <MaterialIcons name="remove" size={20} color="#6B7280" />
                   </Pressable>
@@ -150,9 +155,7 @@ export default function OrderScreen() {
                   </Text>
                   <Pressable
                     style={styles.quantityBtn}
-                    onPress={() =>
-                      updateQuantity(item.id, item.quantity + 1)
-                    }
+                    onPress={() => updateQuantity(item.id, item.quantity + 1)}
                   >
                     <MaterialIcons name="add" size={20} color="#6B7280" />
                   </Pressable>
@@ -204,7 +207,11 @@ export default function OrderScreen() {
         {/* Payment Method */}
         <View style={styles.paymentSection}>
           <Surface style={styles.paymentMethod} elevation={0}>
-            <MaterialIcons name="account-balance-wallet" size={24} color={COFFEE_TINT} />
+            <MaterialIcons
+              name="account-balance-wallet"
+              size={24}
+              color={COFFEE_TINT}
+            />
             <View style={styles.paymentMethodInfo}>
               <Text variant="titleMedium" style={styles.paymentMethodLabel}>
                 Cash/Wallet
@@ -213,30 +220,86 @@ export default function OrderScreen() {
                 $ {total.toFixed(2)}
               </Text>
             </View>
-            <MaterialIcons name="keyboard-arrow-down" size={24} color="#9CA3AF" />
+            <MaterialIcons
+              name="keyboard-arrow-down"
+              size={24}
+              color="#9CA3AF"
+            />
           </Surface>
         </View>
       </ScrollView>
 
+      {/* Order Error */}
+      {orderError && (
+        <View style={styles.errorBanner}>
+          <MaterialIcons name="error-outline" size={20} color="#EF4444" />
+          <Text variant="bodyMedium" style={styles.errorText}>
+            {orderError}
+          </Text>
+        </View>
+      )}
+
       {/* Order Button */}
       <Surface
-        style={[
-          styles.bottomBar,
-          { paddingBottom: insets.bottom + 16 },
-        ]}
+        style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}
         elevation={2}
       >
         <Button
           mode="contained"
-          onPress={() => {
+          onPress={async () => {
+            if (isSubmitting) return;
+            if (deliveryType === "deliver" && !address) {
+              setOrderError("Silakan set alamat pengiriman terlebih dahulu");
+              return;
+            }
+            setOrderError(null);
+            setIsSubmitting(true);
             isPlacingOrder.current = true;
-            router.replace("/delivery");
-            clearCart();
+            try {
+              await createOrder({
+                items: items.map((i) => ({
+                  coffeeId: i.coffeeId,
+                  name: i.name,
+                  description: i.description,
+                  price: i.price,
+                  size: i.size,
+                  quantity: i.quantity,
+                })),
+                deliveryType,
+                address:
+                  deliveryType === "deliver" && address
+                    ? {
+                        street: address.street,
+                        fullAddress: address.fullAddress,
+                        city: address.city,
+                        region: address.region,
+                        latitude: address.latitude,
+                        longitude: address.longitude,
+                      }
+                    : undefined,
+                subtotal,
+                deliveryFee,
+                total,
+              });
+              clearCart();
+              router.replace("/delivery");
+            } catch (e) {
+              setOrderError(
+                e instanceof Error
+                  ? e.message
+                  : "Gagal memproses pesanan. Cek koneksi."
+              );
+              isPlacingOrder.current = false;
+            } finally {
+              setIsSubmitting(false);
+            }
           }}
           buttonColor={COFFEE_TINT}
           style={styles.orderButton}
+          loading={isSubmitting}
+          disabled={isSubmitting}
         >
-          Order
+          {isSubmitting ? "Memproses..." : "Order"}
         </Button>
       </Surface>
     </Surface>
@@ -429,5 +492,21 @@ const styles = StyleSheet.create({
   },
   orderButton: {
     paddingVertical: 6,
+  },
+  errorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FEE2E2",
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 24,
+    marginBottom: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+  },
+  errorText: {
+    flex: 1,
+    color: "#B91C1C",
   },
 });

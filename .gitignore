@@ -44,3 +44,6 @@ app-example
 
 # Go
 *.exe
+
+# Backend data (JSON)
+be/data/

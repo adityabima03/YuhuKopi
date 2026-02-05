@@ -11,6 +11,8 @@ func Setup(r *gin.Engine) {
 	{
 		api.GET("/coffees", handlers.GetCoffees)
 		api.GET("/coffees/:id", handlers.GetCoffeeByID)
+		api.POST("/orders", handlers.CreateOrder)
+		api.GET("/orders", handlers.GetOrders)
 	}
 
 	// Health check
