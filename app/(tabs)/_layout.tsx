@@ -4,11 +4,13 @@ import React from "react";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { useCartStore } from "@/store/cart";
+import { useFavoritesStore } from "@/store/favorites";
 
 const COFFEE_TINT = "#A0522D";
 
 export default function TabLayout() {
   const itemCount = useCartStore((s) => s.getItemCount());
+  const favoritesCount = useFavoritesStore((s) => s.getCount());
 
   return (
     <Tabs
@@ -37,6 +39,7 @@ export default function TabLayout() {
         name="favorites"
         options={{
           title: "Favorites",
+          tabBarBadge: favoritesCount > 0 ? favoritesCount : undefined,
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="favorite-border" size={26} color={color} />
           ),

@@ -8,13 +8,21 @@ type Props = {
   destination: { latitude: number; longitude: number };
   initialRegion?: object;
   routeCoordinates?: object[];
-  courierPosition?: object;
+  courierPosition?: { latitude: number; longitude: number };
   mapRef?: React.RefObject<any>;
 };
 
-export default function DeliveryMap({ destination }: Props) {
-  const openMapsWeb = () => {
-    const url = `https://www.google.com/maps?q=${destination.latitude},${destination.longitude}`;
+// Rute motor: dirflg=l (two wheeler/motorcycle)
+const getMotorRouteUrl = (
+  origin: { latitude: number; longitude: number },
+  dest: { latitude: number; longitude: number }
+) =>
+  `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&dirflg=l`;
+
+export default function DeliveryMap({ destination, courierPosition }: Props) {
+  const origin = courierPosition ?? destination;
+  const openMapsMotorRoute = () => {
+    const url = getMotorRouteUrl(origin, destination);
     Linking.openURL(url);
   };
 
@@ -24,9 +32,9 @@ export default function DeliveryMap({ destination }: Props) {
       <Text variant="bodyLarge" style={styles.placeholderText}>
         Peta hanya tersedia di Android/iOS
       </Text>
-      <Pressable style={styles.button} onPress={openMapsWeb}>
+      <Pressable style={styles.button} onPress={openMapsMotorRoute}>
         <Text variant="labelLarge" style={styles.buttonText}>
-          Buka di Google Maps
+          Buka Rute Motor di Google Maps
         </Text>
       </Pressable>
     </View>

@@ -4,6 +4,7 @@ export const COFFEE_ITEMS = [
   {
     id: "1",
     name: "Caffe Mocha",
+    category: "Machiato",
     description: "Deep Foam",
     price: "4.53",
     rating: "4.8",
@@ -15,6 +16,7 @@ export const COFFEE_ITEMS = [
   {
     id: "2",
     name: "Flat White",
+    category: "Latte",
     description: "Espresso",
     price: "3.53",
     rating: "4.8",
@@ -26,6 +28,7 @@ export const COFFEE_ITEMS = [
   {
     id: "3",
     name: "Caffe Latte",
+    category: "Latte",
     description: "Smooth Milk",
     price: "3.99",
     rating: "4.9",
@@ -37,6 +40,7 @@ export const COFFEE_ITEMS = [
   {
     id: "4",
     name: "Americano",
+    category: "Americano",
     description: "Bold Espresso",
     price: "2.99",
     rating: "4.7",

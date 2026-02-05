@@ -1,39 +1,74 @@
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useState } from "react";
 import {
   Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
-import {
-  Card,
-  Chip,
-  IconButton,
-  Surface,
-  Text,
-} from "react-native-paper";
+import { Card, Chip, IconButton, Surface, Text } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { COFFEE_ITEMS, COFFEE_TINT } from "@/constants/coffee";
+import { useDeliveryAddress } from "@/hooks/useDeliveryAddress";
 import { useAddressStore } from "@/store/address";
 import { useCartStore } from "@/store/cart";
-import { useDeliveryAddress } from "@/hooks/useDeliveryAddress";
-import { COFFEE_ITEMS, COFFEE_TINT } from "@/constants/coffee";
+import { useFavoritesStore } from "@/store/favorites";
 
-const CATEGORIES = ["All Coffee", "Machiato", "Latte", "Americano", "Cappuccino"];
+const CATEGORIES = [
+  "All Coffee",
+  "Machiato",
+  "Latte",
+  "Americano",
+  "Cappuccino",
+];
+
+const HORIZONTAL_PADDING_RATIO = 0.06;
+const CARD_GAP = 10;
+const NUM_COLUMNS = 2;
 
 export default function HomeScreen() {
+  const { width: screenWidth } = useWindowDimensions();
+  const [selectedCategory, setSelectedCategory] = useState("All Coffee");
+  const [searchQuery, setSearchQuery] = useState("");
   const insets = useSafeAreaInsets();
   const addItem = useCartStore((s) => s.addItem);
+  const coffeeIds = useFavoritesStore((s) => s.coffeeIds);
+  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
   const locationDisplay = useAddressStore((s) => s.getLocationDisplay());
   const isLoading = useAddressStore((s) => s.isLoading);
   const { refreshLocation } = useDeliveryAddress();
 
+  const horizontalPadding = Math.max(
+    16,
+    Math.min(28, screenWidth * HORIZONTAL_PADDING_RATIO)
+  );
+  const contentWidth = screenWidth - horizontalPadding * 2;
+  const cardWidth = (contentWidth - CARD_GAP) / NUM_COLUMNS;
+  const imageHeight = Math.max(80, cardWidth * 0.75);
+
+  const filteredCoffees = COFFEE_ITEMS.filter((item) => {
+    const matchesCategory =
+      selectedCategory === "All Coffee" || item.category === selectedCategory;
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      item.name.toLowerCase().includes(query) ||
+      item.description.toLowerCase().includes(query) ||
+      item.category.toLowerCase().includes(query);
+    return matchesCategory && matchesSearch;
+  });
+
   return (
-    <Surface style={[styles.container, { paddingTop: insets.top }]} elevation={0}>
+    <Surface
+      style={[styles.container, { paddingTop: insets.top }]}
+      elevation={0}
+    >
       <StatusBar style="light" />
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -41,7 +76,9 @@ export default function HomeScreen() {
       >
         {/* Dark section: Header + Search */}
         <Surface style={styles.darkSection} elevation={0}>
-          <View style={styles.header}>
+          <View
+            style={[styles.header, { paddingHorizontal: horizontalPadding }]}
+          >
             <Text variant="bodyMedium" style={styles.locationLabel}>
               Location
             </Text>
@@ -54,7 +91,11 @@ export default function HomeScreen() {
                 <Text variant="titleMedium" style={styles.locationText}>
                   {isLoading ? "Getting location..." : locationDisplay}
                 </Text>
-                <MaterialIcons name="keyboard-arrow-down" size={24} color="#9CA3AF" />
+                <MaterialIcons
+                  name="keyboard-arrow-down"
+                  size={24}
+                  color="#9CA3AF"
+                />
               </Pressable>
               <Pressable
                 style={[
@@ -72,15 +113,25 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <View style={styles.searchRow}>
+          <View
+            style={[styles.searchRow, { paddingHorizontal: horizontalPadding }]}
+          >
             <View style={styles.searchInput}>
               <MaterialIcons name="search" size={22} color="#9CA3AF" />
               <TextInput
                 style={styles.searchTextInput}
                 placeholder="Search coffee"
                 placeholderTextColor="#9CA3AF"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
               />
             </View>
+            <Pressable
+              style={styles.favoritesButton}
+              onPress={() => router.push("/(tabs)/favorites")}
+            >
+              <MaterialIcons name="favorite-border" size={24} color="#FFFFFF" />
+            </Pressable>
             <IconButton
               icon="tune"
               iconColor="#FFFFFF"
@@ -92,13 +143,26 @@ export default function HomeScreen() {
         </Surface>
 
         {/* Promo Banner */}
-        <View style={styles.promoBanner}>
+        <View
+          style={[
+            styles.promoBanner,
+            {
+              marginHorizontal: horizontalPadding,
+              minHeight: Math.max(120, screenWidth * 0.35),
+            },
+          ]}
+        >
           <Image
             source={require("@/assets/images/1.png")}
             style={styles.promoBannerImage}
             contentFit="cover"
           />
-          <View style={styles.promoBannerOverlay}>
+          <View
+            style={[
+              styles.promoBannerOverlay,
+              { minHeight: Math.max(120, screenWidth * 0.35) },
+            ]}
+          >
             <Chip
               style={[styles.promoTag, { backgroundColor: "#DC2626" }]}
               textStyle={styles.promoTagText}
@@ -117,20 +181,23 @@ export default function HomeScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoriesScroll}
-          contentContainerStyle={styles.categoriesContent}
+          contentContainerStyle={[
+            styles.categoriesContent,
+            { paddingHorizontal: horizontalPadding },
+          ]}
         >
-          {CATEGORIES.map((cat, index) => (
+          {CATEGORIES.map((cat) => (
             <Chip
               key={cat}
-              selected={index === 0}
-              onPress={() => {}}
+              selected={selectedCategory === cat}
+              onPress={() => setSelectedCategory(cat)}
               style={[
                 styles.categoryTab,
-                index === 0 && styles.categoryTabActive,
+                selectedCategory === cat && styles.categoryTabActive,
               ]}
               textStyle={[
                 styles.categoryText,
-                index === 0 && styles.categoryTextActive,
+                selectedCategory === cat && styles.categoryTextActive,
               ]}
               selectedColor="#FFFFFF"
               showSelectedOverlay={false}
@@ -141,15 +208,38 @@ export default function HomeScreen() {
         </ScrollView>
 
         {/* Coffee Grid */}
-        <View style={styles.coffeeGrid}>
-          {COFFEE_ITEMS.map((item) => (
+        <View
+          style={[
+            styles.coffeeGrid,
+            {
+              paddingHorizontal: horizontalPadding,
+              gap: CARD_GAP,
+            },
+          ]}
+        >
+          {filteredCoffees.map((item) => (
             <Card
               key={item.id}
-              style={styles.coffeeCard}
+              style={[
+                styles.coffeeCard,
+                {
+                  width: "47%",
+                  flexBasis: "47%",
+                  flexGrow: 0,
+                  flexShrink: 0,
+                  ...(coffeeIds.includes(item.id) && {
+                    borderWidth: 2,
+                    borderColor: "#EF4444",
+                    backgroundColor: "rgba(239, 68, 68, 0.12)",
+                  }),
+                },
+              ]}
               onPress={() => router.push(`/coffee/${item.id}`)}
               contentStyle={styles.coffeeCardContent}
             >
-              <View style={styles.coffeeImageContainer}>
+              <View
+                style={[styles.coffeeImageContainer, { height: imageHeight }]}
+              >
                 <Image
                   source={item.image}
                   style={styles.coffeeImage}
@@ -161,6 +251,23 @@ export default function HomeScreen() {
                     {item.rating}
                   </Text>
                 </View>
+                <Pressable
+                  style={styles.favoriteCardButton}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(item.id);
+                  }}
+                >
+                  <MaterialIcons
+                    name={
+                      coffeeIds.includes(item.id)
+                        ? "favorite"
+                        : "favorite-border"
+                    }
+                    size={20}
+                    color={coffeeIds.includes(item.id) ? "#EF4444" : "#FFFFFF"}
+                  />
+                </Pressable>
               </View>
               <Text variant="titleMedium" style={styles.coffeeName}>
                 {item.name}
@@ -210,7 +317,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 24,
   },
   header: {
-    paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 12,
   },
@@ -250,7 +356,6 @@ const styles = StyleSheet.create({
   },
   searchRow: {
     flexDirection: "row",
-    paddingHorizontal: 24,
     gap: 12,
   },
   searchInput: {
@@ -269,12 +374,19 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     padding: 0,
   },
+  favoritesButton: {
+    backgroundColor: COFFEE_TINT,
+    borderRadius: 12,
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   filterButton: {
     backgroundColor: COFFEE_TINT,
     borderRadius: 12,
   },
   promoBanner: {
-    marginHorizontal: 24,
     marginTop: -20,
     borderRadius: 20,
     marginBottom: 24,
@@ -293,7 +405,6 @@ const styles = StyleSheet.create({
   },
   promoBannerOverlay: {
     padding: 24,
-    minHeight: 140,
     justifyContent: "center",
     backgroundColor: "rgba(139, 105, 20, 0.5)",
   },
@@ -316,12 +427,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#151718",
   },
   categoriesContent: {
-    paddingHorizontal: 24,
-    gap: 12,
+    gap: 8,
     flexDirection: "row",
   },
   categoryTab: {
-    marginRight: 12,
     backgroundColor: "#FFFFFF",
   },
   categoryTabActive: {
@@ -337,21 +446,16 @@ const styles = StyleSheet.create({
   coffeeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    paddingHorizontal: 24,
-    gap: 16,
     backgroundColor: "#151718",
   },
   coffeeCard: {
-    width: "47%",
     backgroundColor: "#2D2D2D",
     borderRadius: 20,
-    marginBottom: 8,
   },
   coffeeCardContent: {
     padding: 16,
   },
   coffeeImageContainer: {
-    height: 120,
     backgroundColor: "#1A1A1A",
     borderRadius: 16,
     marginBottom: 12,
@@ -361,6 +465,15 @@ const styles = StyleSheet.create({
   coffeeImage: {
     width: "100%",
     height: "100%",
+  },
+  favoriteCardButton: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    zIndex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    borderRadius: 20,
+    padding: 6,
   },
   ratingBadge: {
     position: "absolute",

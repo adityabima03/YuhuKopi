@@ -11,15 +11,27 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Surface, Text } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import DeliveryMap from "@/components/DeliveryMap";
-import { FALLBACK_COORDS, useAddressStore } from "@/store/address";
+import { useAddressStore } from "@/store/address";
 
 const COFFEE_TINT = "#A0522D";
 
-const COURIER_POSITION = { latitude: 2.985, longitude: 99.612 };
+// Binus University Anggrek - Jl. Kebon Jeruk Raya No.27, Jakarta Barat
+const BINUS_ANGGREK_COORDS = {
+  latitude: -6.2017561,
+  longitude: 106.7823984,
+};
+// Rute motor: dirflg=l (two wheeler/motorcycle)
+const getMotorRouteUrl = (
+  origin: { latitude: number; longitude: number },
+  dest: { latitude: number; longitude: number }
+) =>
+  `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&dirflg=l`;
+
+const COURIER_POSITION = BINUS_ANGGREK_COORDS;
 
 export default function DeliveryScreen() {
   const insets = useSafeAreaInsets();
@@ -29,12 +41,13 @@ export default function DeliveryScreen() {
 
   const destination = address
     ? { latitude: address.latitude, longitude: address.longitude }
-    : FALLBACK_COORDS;
+    : BINUS_ANGGREK_COORDS;
   const routeCoordinates = [
-    { latitude: 2.982, longitude: 99.608 },
-    { latitude: 2.983, longitude: 99.61 },
+    {
+      latitude: BINUS_ANGGREK_COORDS.latitude - 0.002,
+      longitude: BINUS_ANGGREK_COORDS.longitude - 0.002,
+    },
     COURIER_POSITION,
-    { latitude: 2.984, longitude: 99.615 },
     destination,
   ];
   const initialRegion = {
@@ -45,15 +58,18 @@ export default function DeliveryScreen() {
   };
 
   const centerOnLocation = () => {
-    mapRef.current?.animateToRegion?.({
-      ...COURIER_POSITION,
-      latitudeDelta: 0.005,
-      longitudeDelta: 0.005,
-    }, 500);
+    mapRef.current?.animateToRegion?.(
+      {
+        ...COURIER_POSITION,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      },
+      500
+    );
   };
 
-  const openMapsWeb = () => {
-    const url = `https://www.google.com/maps?q=${destination.latitude},${destination.longitude}`;
+  const openMapsMotorRoute = () => {
+    const url = getMotorRouteUrl(BINUS_ANGGREK_COORDS, destination);
     Linking.openURL(url);
   };
 
@@ -77,15 +93,12 @@ export default function DeliveryScreen() {
 
         {/* Map Controls */}
         <View style={[styles.mapControls, { top: insets.top + 12 }]}>
-          <Pressable
-            style={styles.mapButton}
-            onPress={() => router.back()}
-          >
+          <Pressable style={styles.mapButton} onPress={() => router.back()}>
             <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
           </Pressable>
           <Pressable
             style={styles.mapButton}
-            onPress={isWeb ? openMapsWeb : centerOnLocation}
+            onPress={isWeb ? openMapsMotorRoute : centerOnLocation}
           >
             <MaterialIcons name="my-location" size={24} color="#1F2937" />
           </Pressable>
@@ -94,10 +107,7 @@ export default function DeliveryScreen() {
 
       {/* Bottom Info Section */}
       <Surface
-        style={[
-          styles.bottomSection,
-          { paddingBottom: insets.bottom + 24 },
-        ]}
+        style={[styles.bottomSection, { paddingBottom: insets.bottom + 24 }]}
         elevation={0}
       >
         <Text variant="headlineSmall" style={styles.timeLeft}>
@@ -128,7 +138,7 @@ export default function DeliveryScreen() {
               Delivered your order
             </Text>
             <Text variant="bodyMedium" style={styles.statusDesc}>
-              We will deliver your goods to you in the shortest possible time.
+              Kurir motor akan mengantar pesanan Anda dalam waktu tercepat.
             </Text>
           </View>
         </Surface>
@@ -140,11 +150,26 @@ export default function DeliveryScreen() {
           </View>
           <View style={styles.courierInfo}>
             <Text variant="titleMedium" style={styles.courierName}>
-              Brooklyn Simmons
+              Tapir Terbang
             </Text>
-            <Text variant="bodyMedium" style={styles.courierRole}>
-              Personal Courier
-            </Text>
+            <Pressable
+              onPress={() =>
+                Linking.openURL(
+                  getMotorRouteUrl(BINUS_ANGGREK_COORDS, destination)
+                )
+              }
+              style={styles.courierRolePressable}
+            >
+              <Text variant="bodyMedium" style={styles.courierRole}>
+                Binus Anggrek
+              </Text>
+              <MaterialIcons
+                name="open-in-new"
+                size={16}
+                color={COFFEE_TINT}
+                style={styles.mapLinkIcon}
+              />
+            </Pressable>
           </View>
           <Pressable style={styles.callButton}>
             <MaterialIcons name="call" size={24} color="#FFFFFF" />
@@ -271,8 +296,17 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 2,
   },
+  courierRolePressable: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+  },
   courierRole: {
-    color: "#6B7280",
+    color: COFFEE_TINT,
+    marginRight: 4,
+  },
+  mapLinkIcon: {
+    marginTop: 2,
   },
   callButton: {
     width: 48,
