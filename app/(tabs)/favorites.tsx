@@ -11,7 +11,8 @@ import {
 import { Card, IconButton, Surface, Text } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COFFEE_ITEMS, COFFEE_TINT } from "@/constants/coffee";
+import { COFFEE_TINT } from "@/constants/coffee";
+import { useCoffees } from "@/hooks/useCoffees";
 import { useCartStore } from "@/store/cart";
 import { useFavoritesStore } from "@/store/favorites";
 
@@ -23,15 +24,18 @@ export default function FavoritesScreen() {
   const coffeeIds = useFavoritesStore((s) => s.coffeeIds);
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
   const addItem = useCartStore((s) => s.addItem);
+  const {
+    coffees,
+    loading: coffeesLoading,
+    error: coffeesError,
+  } = useCoffees();
 
   const horizontalPadding = Math.max(16, Math.min(28, screenWidth * 0.06));
   const contentWidth = screenWidth - horizontalPadding * 2;
   const cardWidth = (contentWidth - CARD_GAP) / 2;
   const imageHeight = Math.max(80, cardWidth * 0.75);
 
-  const favoriteItems = COFFEE_ITEMS.filter((item) =>
-    coffeeIds.includes(item.id)
-  );
+  const favoriteItems = coffees.filter((item) => coffeeIds.includes(item.id));
 
   return (
     <Surface
@@ -53,7 +57,19 @@ export default function FavoritesScreen() {
           </Text>
         </View>
 
-        {favoriteItems.length === 0 ? (
+        {coffeesLoading ? (
+          <View style={styles.loadingState}>
+            <Text variant="bodyLarge" style={styles.loadingText}>
+              Memuat favorites...
+            </Text>
+          </View>
+        ) : coffeesError ? (
+          <View style={styles.errorState}>
+            <Text variant="bodyLarge" style={styles.errorText}>
+              {coffeesError}
+            </Text>
+          </View>
+        ) : favoriteItems.length === 0 ? (
           <View style={styles.emptyState}>
             <MaterialIcons name="favorite-border" size={64} color="#9CA3AF" />
             <Text variant="titleMedium" style={styles.emptyTitle}>
@@ -92,7 +108,7 @@ export default function FavoritesScreen() {
                   style={[styles.coffeeImageContainer, { height: imageHeight }]}
                 >
                   <Image
-                    source={item.image}
+                    source={item.imageSource}
                     style={styles.coffeeImage}
                     contentFit="cover"
                   />
@@ -135,7 +151,7 @@ export default function FavoritesScreen() {
                         description: item.description,
                         price: item.price,
                         size: "M",
-                        image: item.image,
+                        image: item.imageSource,
                       });
                     }}
                   />
@@ -253,5 +269,21 @@ const styles = StyleSheet.create({
   addButton: {
     backgroundColor: COFFEE_TINT,
     margin: 0,
+  },
+  loadingState: {
+    flex: 1,
+    paddingVertical: 40,
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#9CA3AF",
+  },
+  errorState: {
+    flex: 1,
+    paddingVertical: 40,
+    alignItems: "center",
+  },
+  errorText: {
+    color: "#EF4444",
   },
 });

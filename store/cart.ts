@@ -13,7 +13,7 @@ export interface CartItem {
 
 interface CartStore {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: Omit<CartItem, "id" | "quantity">) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -55,9 +55,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       return;
     }
     set((state) => ({
-      items: state.items.map((i) =>
-        i.id === id ? { ...i, quantity } : i
-      ),
+      items: state.items.map((i) => (i.id === id ? { ...i, quantity } : i)),
     }));
   },
 

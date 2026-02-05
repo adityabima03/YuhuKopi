@@ -14,7 +14,8 @@ import {
 import { Card, Chip, IconButton, Surface, Text } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COFFEE_ITEMS, COFFEE_TINT } from "@/constants/coffee";
+import { COFFEE_TINT } from "@/constants/coffee";
+import { useCoffees } from "@/hooks/useCoffees";
 import { useDeliveryAddress } from "@/hooks/useDeliveryAddress";
 import { useAddressStore } from "@/store/address";
 import { useCartStore } from "@/store/cart";
@@ -43,6 +44,11 @@ export default function HomeScreen() {
   const locationDisplay = useAddressStore((s) => s.getLocationDisplay());
   const isLoading = useAddressStore((s) => s.isLoading);
   const { refreshLocation } = useDeliveryAddress();
+  const {
+    coffees,
+    loading: coffeesLoading,
+    error: coffeesError,
+  } = useCoffees();
 
   const horizontalPadding = Math.max(
     16,
@@ -52,7 +58,7 @@ export default function HomeScreen() {
   const cardWidth = (contentWidth - CARD_GAP) / NUM_COLUMNS;
   const imageHeight = Math.max(80, cardWidth * 0.75);
 
-  const filteredCoffees = COFFEE_ITEMS.filter((item) => {
+  const filteredCoffees = coffees.filter((item) => {
     const matchesCategory =
       selectedCategory === "All Coffee" || item.category === selectedCategory;
     const query = searchQuery.trim().toLowerCase();
@@ -217,88 +223,117 @@ export default function HomeScreen() {
             },
           ]}
         >
-          {filteredCoffees.map((item) => (
-            <Card
-              key={item.id}
+          {coffeesLoading ? (
+            <View
               style={[
-                styles.coffeeCard,
-                {
-                  width: "47%",
-                  flexBasis: "47%",
-                  flexGrow: 0,
-                  flexShrink: 0,
-                  ...(coffeeIds.includes(item.id) && {
-                    borderWidth: 2,
-                    borderColor: "#EF4444",
-                    backgroundColor: "rgba(239, 68, 68, 0.12)",
-                  }),
-                },
+                styles.loadingState,
+                { paddingHorizontal: horizontalPadding },
               ]}
-              onPress={() => router.push(`/coffee/${item.id}`)}
-              contentStyle={styles.coffeeCardContent}
             >
-              <View
-                style={[styles.coffeeImageContainer, { height: imageHeight }]}
+              <Text variant="bodyLarge" style={styles.loadingText}>
+                Memuat coffee...
+              </Text>
+            </View>
+          ) : coffeesError ? (
+            <View
+              style={[
+                styles.errorState,
+                { paddingHorizontal: horizontalPadding },
+              ]}
+            >
+              <Text variant="bodyLarge" style={styles.errorText}>
+                {coffeesError}
+              </Text>
+              <Text variant="bodySmall" style={styles.errorHint}>
+                Pastikan backend berjalan di http://localhost:8080
+              </Text>
+            </View>
+          ) : (
+            filteredCoffees.map((item) => (
+              <Card
+                key={item.id}
+                style={[
+                  styles.coffeeCard,
+                  {
+                    width: "47%",
+                    flexBasis: "47%",
+                    flexGrow: 0,
+                    flexShrink: 0,
+                    ...(coffeeIds.includes(item.id) && {
+                      borderWidth: 2,
+                      borderColor: "#EF4444",
+                      backgroundColor: "rgba(239, 68, 68, 0.12)",
+                    }),
+                  },
+                ]}
+                onPress={() => router.push(`/coffee/${item.id}`)}
+                contentStyle={styles.coffeeCardContent}
               >
-                <Image
-                  source={item.image}
-                  style={styles.coffeeImage}
-                  contentFit="cover"
-                />
-                <View style={styles.ratingBadge}>
-                  <MaterialIcons name="star" size={14} color="#FBBF24" />
-                  <Text variant="labelSmall" style={styles.ratingText}>
-                    {item.rating}
-                  </Text>
-                </View>
-                <Pressable
-                  style={styles.favoriteCardButton}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(item.id);
-                  }}
+                <View
+                  style={[styles.coffeeImageContainer, { height: imageHeight }]}
                 >
-                  <MaterialIcons
-                    name={
-                      coffeeIds.includes(item.id)
-                        ? "favorite"
-                        : "favorite-border"
-                    }
-                    size={20}
-                    color={coffeeIds.includes(item.id) ? "#EF4444" : "#FFFFFF"}
+                  <Image
+                    source={item.imageSource}
+                    style={styles.coffeeImage}
+                    contentFit="cover"
                   />
-                </Pressable>
-              </View>
-              <Text variant="titleMedium" style={styles.coffeeName}>
-                {item.name}
-              </Text>
-              <Text variant="bodySmall" style={styles.coffeeDesc}>
-                {item.description}
-              </Text>
-              <View style={styles.coffeeFooter}>
-                <Text variant="titleLarge" style={styles.coffeePrice}>
-                  $ {item.price}
+                  <View style={styles.ratingBadge}>
+                    <MaterialIcons name="star" size={14} color="#FBBF24" />
+                    <Text variant="labelSmall" style={styles.ratingText}>
+                      {item.rating}
+                    </Text>
+                  </View>
+                  <Pressable
+                    style={styles.favoriteCardButton}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(item.id);
+                    }}
+                  >
+                    <MaterialIcons
+                      name={
+                        coffeeIds.includes(item.id)
+                          ? "favorite"
+                          : "favorite-border"
+                      }
+                      size={20}
+                      color={
+                        coffeeIds.includes(item.id) ? "#EF4444" : "#FFFFFF"
+                      }
+                    />
+                  </Pressable>
+                </View>
+                <Text variant="titleMedium" style={styles.coffeeName}>
+                  {item.name}
                 </Text>
-                <IconButton
-                  icon="plus"
-                  iconColor="#FFFFFF"
-                  size={24}
-                  style={styles.addButton}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    addItem({
-                      coffeeId: item.id,
-                      name: item.name,
-                      description: item.description,
-                      price: item.price,
-                      size: "M",
-                      image: item.image,
-                    });
-                  }}
-                />
-              </View>
-            </Card>
-          ))}
+                <Text variant="bodySmall" style={styles.coffeeDesc}>
+                  {item.description}
+                </Text>
+                <View style={styles.coffeeFooter}>
+                  <Text variant="titleLarge" style={styles.coffeePrice}>
+                    $ {item.price}
+                  </Text>
+                  <IconButton
+                    icon="plus"
+                    iconColor="#FFFFFF"
+                    size={24}
+                    style={styles.addButton}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      addItem({
+                        coffeeId: item.id,
+                        name: item.name,
+                        description: item.description,
+                        price: item.price,
+                        size: "M",
+                        image: item.imageSource,
+                      });
+                    }}
+                  />
+                </View>
+              </Card>
+            ))
+          )}
         </View>
       </ScrollView>
     </Surface>
@@ -512,5 +547,26 @@ const styles = StyleSheet.create({
   addButton: {
     backgroundColor: COFFEE_TINT,
     margin: 0,
+  },
+  loadingState: {
+    flex: 1,
+    paddingVertical: 40,
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#9CA3AF",
+  },
+  errorState: {
+    flex: 1,
+    paddingVertical: 40,
+    alignItems: "center",
+    gap: 8,
+  },
+  errorText: {
+    color: "#EF4444",
+  },
+  errorHint: {
+    color: "#9CA3AF",
+    textAlign: "center",
   },
 });

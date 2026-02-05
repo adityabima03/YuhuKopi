@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-paper/src/components/Tooltip/Tooltip.tsx b/node_modules/react-native-paper/src/components/Tooltip/Tooltip.tsx
+index f5a483d..bc1c8dd 100644
+--- a/node_modules/react-native-paper/src/components/Tooltip/Tooltip.tsx
++++ b/node_modules/react-native-paper/src/components/Tooltip/Tooltip.tsx
+@@ -15,7 +15,7 @@ import { getTooltipPosition, Measurement, TooltipChildProps } from './utils';
+ import { useInternalTheme } from '../../core/theming';
+ import { addEventListener } from '../../utils/addEventListener';
+ import Portal from '../Portal/Portal';
+-import Text from '../Typography/Text';
++import Text from '../Typography/Text.tsx';
+ 
+ export type Props = {
+   /**

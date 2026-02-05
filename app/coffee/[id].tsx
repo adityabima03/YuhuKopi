@@ -1,23 +1,15 @@
-import { Image } from "expo-image";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Button, Surface, Text } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  Button,
-  Surface,
-  Text,
-} from "react-native-paper";
 
-import { COFFEE_ITEMS, COFFEE_TINT } from "@/constants/coffee";
+import { COFFEE_TINT } from "@/constants/coffee";
+import { useCoffeeById } from "@/hooks/useCoffeeById";
 import { useCartStore } from "@/store/cart";
 
 const SIZES = ["S", "M", "L"];
@@ -28,12 +20,52 @@ export default function CoffeeDetailScreen() {
   const [selectedSize, setSelectedSize] = useState("M");
   const [showFullDescription, setShowFullDescription] = useState(false);
 
-  const coffee = COFFEE_ITEMS.find((item) => item.id === id) ?? COFFEE_ITEMS[0];
-  const fullDescription = "fullDescription" in coffee ? coffee.fullDescription : coffee.description;
+  const { coffee, loading, error } = useCoffeeById(id);
+  const fullDescription = coffee
+    ? coffee.fullDescription ?? coffee.description
+    : "";
   const addItem = useCartStore((s) => s.addItem);
 
+  if (loading) {
+    return (
+      <Surface
+        style={[styles.container, { paddingTop: insets.top }]}
+        elevation={0}
+      >
+        <View style={styles.centerContent}>
+          <Text variant="bodyLarge" style={styles.loadingText}>
+            Memuat detail...
+          </Text>
+        </View>
+      </Surface>
+    );
+  }
+
+  if (error || !coffee) {
+    return (
+      <Surface
+        style={[styles.container, { paddingTop: insets.top }]}
+        elevation={0}
+      >
+        <View style={styles.centerContent}>
+          <Text variant="bodyLarge" style={styles.errorText}>
+            {error ?? "Coffee tidak ditemukan"}
+          </Text>
+          <Pressable onPress={() => router.back()} style={styles.backLink}>
+            <Text variant="labelLarge" style={styles.backLinkText}>
+              Kembali
+            </Text>
+          </Pressable>
+        </View>
+      </Surface>
+    );
+  }
+
   return (
-    <Surface style={[styles.container, { paddingTop: insets.top }]} elevation={0}>
+    <Surface
+      style={[styles.container, { paddingTop: insets.top }]}
+      elevation={0}
+    >
       <StatusBar style="dark" />
 
       {/* Header */}
@@ -63,7 +95,7 @@ export default function CoffeeDetailScreen() {
         {/* Product Image */}
         <View style={styles.imageContainer}>
           <Image
-            source={coffee.image}
+            source={coffee.imageSource}
             style={styles.productImage}
             contentFit="cover"
           />
@@ -111,7 +143,7 @@ export default function CoffeeDetailScreen() {
               {coffee.rating}
             </Text>
             <Text variant="bodyMedium" style={styles.reviewsText}>
-              ({"reviews" in coffee ? coffee.reviews : "230"})
+              ({coffee.reviews ?? "230"})
             </Text>
           </View>
         </View>
@@ -128,7 +160,9 @@ export default function CoffeeDetailScreen() {
           >
             {fullDescription}
           </Text>
-          <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
+          <Pressable
+            onPress={() => setShowFullDescription(!showFullDescription)}
+          >
             <Text variant="labelLarge" style={styles.readMoreText}>
               {showFullDescription ? "Read Less" : "Read More"}
             </Text>
@@ -167,10 +201,7 @@ export default function CoffeeDetailScreen() {
 
       {/* Bottom Bar */}
       <Surface
-        style={[
-          styles.bottomBar,
-          { paddingBottom: insets.bottom + 16 },
-        ]}
+        style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}
         elevation={1}
       >
         <View style={styles.priceBlock}>
@@ -190,7 +221,7 @@ export default function CoffeeDetailScreen() {
               description: coffee.description,
               price: coffee.price,
               size: selectedSize,
-              image: coffee.image,
+              image: coffee.imageSource,
             });
             router.dismissTo("/(tabs)/cart");
           }}
@@ -208,6 +239,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+    gap: 16,
+  },
+  loadingText: {
+    color: "#6B7280",
+  },
+  errorText: {
+    color: "#EF4444",
+  },
+  backLink: {
+    padding: 12,
+  },
+  backLinkText: {
+    color: COFFEE_TINT,
+    fontWeight: "600",
   },
   header: {
     flexDirection: "row",
