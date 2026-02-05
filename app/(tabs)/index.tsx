@@ -3,19 +3,24 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { useAddressStore } from "@/store/address";
-import { useCartStore } from "@/store/cart";
-import { useDeliveryAddress } from "@/hooks/useDeliveryAddress";
 import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from "react-native";
+import {
+  Card,
+  Chip,
+  IconButton,
+  Surface,
+  Text,
+} from "react-native-paper";
 
+import { useAddressStore } from "@/store/address";
+import { useCartStore } from "@/store/cart";
+import { useDeliveryAddress } from "@/hooks/useDeliveryAddress";
 import { COFFEE_ITEMS, COFFEE_TINT } from "@/constants/coffee";
 
 const CATEGORIES = ["All Coffee", "Machiato", "Latte", "Americano", "Cappuccino"];
@@ -28,52 +33,63 @@ export default function HomeScreen() {
   const { refreshLocation } = useDeliveryAddress();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <Surface style={[styles.container, { paddingTop: insets.top }]} elevation={0}>
       <StatusBar style="light" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Dark section: Header + Search */}
-        <View style={styles.darkSection}>
+        <Surface style={styles.darkSection} elevation={0}>
           <View style={styles.header}>
-            <Text style={styles.locationLabel}>Location</Text>
+            <Text variant="bodyMedium" style={styles.locationLabel}>
+              Location
+            </Text>
             <View style={styles.locationRow}>
               <Pressable
                 style={styles.locationSelector}
                 onPress={() => router.push("/edit-address")}
               >
                 <MaterialIcons name="location-on" size={20} color="#9CA3AF" />
-                <Text style={styles.locationText}>
+                <Text variant="titleMedium" style={styles.locationText}>
                   {isLoading ? "Getting location..." : locationDisplay}
                 </Text>
                 <MaterialIcons name="keyboard-arrow-down" size={24} color="#9CA3AF" />
               </Pressable>
               <Pressable
-                style={[styles.locationNowButton, isLoading && styles.locationNowButtonDisabled]}
+                style={[
+                  styles.locationNowButton,
+                  isLoading && styles.locationNowButtonDisabled,
+                ]}
                 onPress={refreshLocation}
                 disabled={isLoading}
               >
                 <MaterialIcons name="my-location" size={18} color="#FFFFFF" />
-                <Text style={styles.locationNowText}>Now</Text>
+                <Text variant="labelLarge" style={styles.locationNowText}>
+                  Now
+                </Text>
               </Pressable>
             </View>
           </View>
 
           <View style={styles.searchRow}>
-          <View style={styles.searchInput}>
-            <MaterialIcons name="search" size={22} color="#9CA3AF" />
-            <TextInput
-              style={styles.searchTextInput}
-              placeholder="Search coffee"
-              placeholderTextColor="#9CA3AF"
+            <View style={styles.searchInput}>
+              <MaterialIcons name="search" size={22} color="#9CA3AF" />
+              <TextInput
+                style={styles.searchTextInput}
+                placeholder="Search coffee"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+            <IconButton
+              icon="tune"
+              iconColor="#FFFFFF"
+              size={22}
+              style={styles.filterButton}
+              onPress={() => {}}
             />
           </View>
-          <Pressable style={styles.filterButton}>
-            <MaterialIcons name="tune" size={22} color="#FFFFFF" />
-          </Pressable>
-        </View>
-        </View>
+        </Surface>
 
         {/* Promo Banner */}
         <View style={styles.promoBanner}>
@@ -83,10 +99,14 @@ export default function HomeScreen() {
             contentFit="cover"
           />
           <View style={styles.promoBannerOverlay}>
-            <View style={styles.promoTag}>
-              <Text style={styles.promoTagText}>Promo</Text>
-            </View>
-            <Text style={styles.promoTitle}>
+            <Chip
+              style={[styles.promoTag, { backgroundColor: "#DC2626" }]}
+              textStyle={styles.promoTagText}
+              compact
+            >
+              Promo
+            </Chip>
+            <Text variant="headlineMedium" style={styles.promoTitle}>
               Buy one get one{"\n"}FREE
             </Text>
           </View>
@@ -100,32 +120,34 @@ export default function HomeScreen() {
           contentContainerStyle={styles.categoriesContent}
         >
           {CATEGORIES.map((cat, index) => (
-            <Pressable
+            <Chip
               key={cat}
+              selected={index === 0}
+              onPress={() => {}}
               style={[
                 styles.categoryTab,
                 index === 0 && styles.categoryTabActive,
               ]}
+              textStyle={[
+                styles.categoryText,
+                index === 0 && styles.categoryTextActive,
+              ]}
+              selectedColor="#FFFFFF"
+              showSelectedOverlay={false}
             >
-              <Text
-                style={[
-                  styles.categoryText,
-                  index === 0 && styles.categoryTextActive,
-                ]}
-              >
-                {cat}
-              </Text>
-            </Pressable>
+              {cat}
+            </Chip>
           ))}
         </ScrollView>
 
         {/* Coffee Grid */}
         <View style={styles.coffeeGrid}>
           {COFFEE_ITEMS.map((item) => (
-            <Pressable
+            <Card
               key={item.id}
               style={styles.coffeeCard}
               onPress={() => router.push(`/coffee/${item.id}`)}
+              contentStyle={styles.coffeeCardContent}
             >
               <View style={styles.coffeeImageContainer}>
                 <Image
@@ -135,14 +157,25 @@ export default function HomeScreen() {
                 />
                 <View style={styles.ratingBadge}>
                   <MaterialIcons name="star" size={14} color="#FBBF24" />
-                  <Text style={styles.ratingText}>{item.rating}</Text>
+                  <Text variant="labelSmall" style={styles.ratingText}>
+                    {item.rating}
+                  </Text>
                 </View>
               </View>
-              <Text style={styles.coffeeName}>{item.name}</Text>
-              <Text style={styles.coffeeDesc}>{item.description}</Text>
+              <Text variant="titleMedium" style={styles.coffeeName}>
+                {item.name}
+              </Text>
+              <Text variant="bodySmall" style={styles.coffeeDesc}>
+                {item.description}
+              </Text>
               <View style={styles.coffeeFooter}>
-                <Text style={styles.coffeePrice}>$ {item.price}</Text>
-                <Pressable
+                <Text variant="titleLarge" style={styles.coffeePrice}>
+                  $ {item.price}
+                </Text>
+                <IconButton
+                  icon="plus"
+                  iconColor="#FFFFFF"
+                  size={24}
                   style={styles.addButton}
                   onPress={(e) => {
                     e.stopPropagation();
@@ -155,15 +188,13 @@ export default function HomeScreen() {
                       image: item.image,
                     });
                   }}
-                >
-                  <MaterialIcons name="add" size={24} color="#FFFFFF" />
-                </Pressable>
+                />
               </View>
-            </Pressable>
+            </Card>
           ))}
         </View>
       </ScrollView>
-    </View>
+    </Surface>
   );
 }
 
@@ -184,7 +215,6 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   locationLabel: {
-    fontSize: 14,
     color: "#9CA3AF",
     marginBottom: 4,
   },
@@ -201,8 +231,6 @@ const styles = StyleSheet.create({
   },
   locationText: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
     color: "#FFFFFF",
   },
   locationNowButton: {
@@ -218,8 +246,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   locationNowText: {
-    fontSize: 14,
-    fontWeight: "600",
     color: "#FFFFFF",
   },
   searchRow: {
@@ -246,10 +272,6 @@ const styles = StyleSheet.create({
   filterButton: {
     backgroundColor: COFFEE_TINT,
     borderRadius: 12,
-    width: 52,
-    height: 52,
-    alignItems: "center",
-    justifyContent: "center",
   },
   promoBanner: {
     marginHorizontal: 24,
@@ -278,20 +300,15 @@ const styles = StyleSheet.create({
   promoTag: {
     alignSelf: "flex-start",
     backgroundColor: "#DC2626",
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
     marginBottom: 12,
   },
   promoTagText: {
-    fontSize: 12,
-    fontWeight: "700",
     color: "#FFFFFF",
+    fontWeight: "700",
   },
   promoTitle: {
-    fontSize: 26,
-    fontWeight: "700",
     color: "#FFFFFF",
+    fontWeight: "700",
     lineHeight: 34,
   },
   categoriesScroll: {
@@ -304,16 +321,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   categoryTab: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
+    marginRight: 12,
     backgroundColor: "#FFFFFF",
   },
   categoryTabActive: {
     backgroundColor: COFFEE_TINT,
   },
   categoryText: {
-    fontSize: 15,
     color: "#4B5563",
     fontWeight: "500",
   },
@@ -331,8 +345,10 @@ const styles = StyleSheet.create({
     width: "47%",
     backgroundColor: "#2D2D2D",
     borderRadius: 20,
-    padding: 16,
     marginBottom: 8,
+  },
+  coffeeCardContent: {
+    padding: 16,
   },
   coffeeImageContainer: {
     height: 120,
@@ -360,18 +376,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   ratingText: {
-    fontSize: 12,
     color: "#FFFFFF",
     fontWeight: "600",
   },
   coffeeName: {
-    fontSize: 16,
-    fontWeight: "700",
     color: "#FFFFFF",
     marginBottom: 4,
   },
   coffeeDesc: {
-    fontSize: 13,
     color: "#9CA3AF",
     marginBottom: 12,
   },
@@ -381,16 +393,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   coffeePrice: {
-    fontSize: 18,
-    fontWeight: "700",
     color: "#FFFFFF",
+    fontWeight: "700",
   },
   addButton: {
     backgroundColor: COFFEE_TINT,
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    margin: 0,
   },
 });

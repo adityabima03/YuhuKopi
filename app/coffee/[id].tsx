@@ -8,10 +8,14 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  Button,
+  Surface,
+  Text,
+} from "react-native-paper";
 
 import { COFFEE_ITEMS, COFFEE_TINT } from "@/constants/coffee";
 import { useCartStore } from "@/store/cart";
@@ -29,7 +33,7 @@ export default function CoffeeDetailScreen() {
   const addItem = useCartStore((s) => s.addItem);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <Surface style={[styles.container, { paddingTop: insets.top }]} elevation={0}>
       <StatusBar style="dark" />
 
       {/* Header */}
@@ -41,7 +45,9 @@ export default function CoffeeDetailScreen() {
         >
           <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </Pressable>
-        <Text style={styles.headerTitle}>Detail</Text>
+        <Text variant="titleLarge" style={styles.headerTitle}>
+          Detail
+        </Text>
         <Pressable style={styles.headerButton} hitSlop={12}>
           <MaterialIcons name="favorite-border" size={24} color="#1F2937" />
         </Pressable>
@@ -67,8 +73,12 @@ export default function CoffeeDetailScreen() {
         <View style={styles.productInfo}>
           <View style={styles.productNameRow}>
             <View style={styles.productNameBlock}>
-              <Text style={styles.productName}>{coffee.name}</Text>
-              <Text style={styles.productSubtitle}>Ice/Hot</Text>
+              <Text variant="headlineSmall" style={styles.productName}>
+                {coffee.name}
+              </Text>
+              <Text variant="bodyMedium" style={styles.productSubtitle}>
+                Ice/Hot
+              </Text>
             </View>
             <View style={styles.featureIcons}>
               <View style={styles.featureIcon}>
@@ -97,8 +107,10 @@ export default function CoffeeDetailScreen() {
 
           <View style={styles.ratingRow}>
             <MaterialIcons name="star" size={20} color="#FBBF24" />
-            <Text style={styles.ratingText}>{coffee.rating}</Text>
-            <Text style={styles.reviewsText}>
+            <Text variant="titleMedium" style={styles.ratingText}>
+              {coffee.rating}
+            </Text>
+            <Text variant="bodyMedium" style={styles.reviewsText}>
               ({"reviews" in coffee ? coffee.reviews : "230"})
             </Text>
           </View>
@@ -106,12 +118,18 @@ export default function CoffeeDetailScreen() {
 
         {/* Description */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.descriptionText} numberOfLines={showFullDescription ? undefined : 3}>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            Description
+          </Text>
+          <Text
+            variant="bodyMedium"
+            style={styles.descriptionText}
+            numberOfLines={showFullDescription ? undefined : 3}
+          >
             {fullDescription}
           </Text>
           <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
-            <Text style={styles.readMoreText}>
+            <Text variant="labelLarge" style={styles.readMoreText}>
               {showFullDescription ? "Read Less" : "Read More"}
             </Text>
           </Pressable>
@@ -119,7 +137,9 @@ export default function CoffeeDetailScreen() {
 
         {/* Size Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Size</Text>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            Size
+          </Text>
           <View style={styles.sizeButtons}>
             {SIZES.map((size) => (
               <Pressable
@@ -131,6 +151,7 @@ export default function CoffeeDetailScreen() {
                 onPress={() => setSelectedSize(size)}
               >
                 <Text
+                  variant="titleMedium"
                   style={[
                     styles.sizeButtonText,
                     selectedSize === size && styles.sizeButtonTextActive,
@@ -145,21 +166,23 @@ export default function CoffeeDetailScreen() {
       </ScrollView>
 
       {/* Bottom Bar */}
-      <View
+      <Surface
         style={[
           styles.bottomBar,
           { paddingBottom: insets.bottom + 16 },
         ]}
+        elevation={1}
       >
         <View style={styles.priceBlock}>
-          <Text style={styles.priceLabel}>Price</Text>
-          <Text style={styles.priceValue}>$ {coffee.price}</Text>
+          <Text variant="bodySmall" style={styles.priceLabel}>
+            Price
+          </Text>
+          <Text variant="titleLarge" style={styles.priceValue}>
+            $ {coffee.price}
+          </Text>
         </View>
-        <Pressable
-          style={({ pressed }) => [
-            styles.buyButton,
-            pressed && styles.buyButtonPressed,
-          ]}
+        <Button
+          mode="contained"
           onPress={() => {
             addItem({
               coffeeId: coffee.id,
@@ -171,11 +194,13 @@ export default function CoffeeDetailScreen() {
             });
             router.dismissTo("/(tabs)/cart");
           }}
+          buttonColor={COFFEE_TINT}
+          style={styles.buyButton}
         >
-          <Text style={styles.buyButtonText}>Buy Now</Text>
-        </Pressable>
-      </View>
-    </View>
+          Buy Now
+        </Button>
+      </Surface>
+    </Surface>
   );
 }
 
@@ -198,9 +223,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
   },
   scrollContent: {
     paddingHorizontal: 24,
@@ -229,13 +253,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   productName: {
-    fontSize: 24,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
     marginBottom: 4,
   },
   productSubtitle: {
-    fontSize: 14,
     color: "#9CA3AF",
   },
   featureIcons: {
@@ -256,31 +278,26 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   ratingText: {
-    fontSize: 16,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
   },
   reviewsText: {
-    fontSize: 14,
     color: "#9CA3AF",
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
     marginBottom: 12,
   },
   descriptionText: {
-    fontSize: 15,
     color: "#6B7280",
     lineHeight: 24,
     marginBottom: 8,
   },
   readMoreText: {
-    fontSize: 15,
     color: COFFEE_TINT,
     fontWeight: "600",
   },
@@ -303,9 +320,8 @@ const styles = StyleSheet.create({
     borderColor: COFFEE_TINT,
   },
   sizeButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
     color: "#1F2937",
+    fontWeight: "600",
   },
   sizeButtonTextActive: {
     color: "#FFFFFF",
@@ -326,31 +342,16 @@ const styles = StyleSheet.create({
   },
   priceBlock: {},
   priceLabel: {
-    fontSize: 14,
     color: "#6B7280",
     marginBottom: 2,
   },
   priceValue: {
-    fontSize: 22,
-    fontWeight: "700",
     color: COFFEE_TINT,
+    fontWeight: "700",
   },
   buyButton: {
     flex: 1,
     maxWidth: 200,
-    paddingVertical: 16,
-    borderRadius: 14,
-    backgroundColor: COFFEE_TINT,
-    alignItems: "center",
-    justifyContent: "center",
     marginLeft: 24,
-  },
-  buyButtonPressed: {
-    opacity: 0.9,
-  },
-  buyButtonText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#FFFFFF",
   },
 });

@@ -5,14 +5,16 @@ import { StatusBar } from "expo-status-bar";
 import { useRef } from "react";
 import {
   Dimensions,
+  Linking,
+  Platform,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Surface, Text } from "react-native-paper";
 
+import DeliveryMap from "@/components/DeliveryMap";
 import { FALLBACK_COORDS, useAddressStore } from "@/store/address";
 
 const COFFEE_TINT = "#A0522D";
@@ -21,7 +23,7 @@ const COURIER_POSITION = { latitude: 2.985, longitude: 99.612 };
 
 export default function DeliveryScreen() {
   const insets = useSafeAreaInsets();
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<any>(null);
   const getShortAddress = useAddressStore((s) => s.getShortAddress);
   const address = useAddressStore((s) => s.address);
 
@@ -43,46 +45,35 @@ export default function DeliveryScreen() {
   };
 
   const centerOnLocation = () => {
-    mapRef.current?.animateToRegion({
+    mapRef.current?.animateToRegion?.({
       ...COURIER_POSITION,
       latitudeDelta: 0.005,
       longitudeDelta: 0.005,
     }, 500);
   };
 
+  const openMapsWeb = () => {
+    const url = `https://www.google.com/maps?q=${destination.latitude},${destination.longitude}`;
+    Linking.openURL(url);
+  };
+
   const { height } = Dimensions.get("window");
   const mapHeight = height * 0.55;
+  const isWeb = Platform.OS === "web";
 
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
 
-      {/* Map Section */}
+      {/* Map Section - DeliveryMap.web.tsx di web, DeliveryMap.tsx di native */}
       <View style={[styles.mapContainer, { height: mapHeight }]}>
-        <MapView
-          ref={mapRef}
-          style={styles.map}
+        <DeliveryMap
+          destination={destination}
           initialRegion={initialRegion}
-          mapType="standard"
-          showsUserLocation={false}
-          showsMyLocationButton={false}
-        >
-          <Polyline
-            coordinates={routeCoordinates}
-            strokeColor={COFFEE_TINT}
-            strokeWidth={5}
-          />
-          <Marker
-            coordinate={destination}
-            pinColor={COFFEE_TINT}
-            title="Tujuan"
-          />
-          <Marker
-            coordinate={COURIER_POSITION}
-            title="Kurir"
-            pinColor={COFFEE_TINT}
-          />
-        </MapView>
+          routeCoordinates={routeCoordinates}
+          courierPosition={COURIER_POSITION}
+          mapRef={mapRef}
+        />
 
         {/* Map Controls */}
         <View style={[styles.mapControls, { top: insets.top + 12 }]}>
@@ -92,21 +83,29 @@ export default function DeliveryScreen() {
           >
             <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
           </Pressable>
-          <Pressable style={styles.mapButton} onPress={centerOnLocation}>
+          <Pressable
+            style={styles.mapButton}
+            onPress={isWeb ? openMapsWeb : centerOnLocation}
+          >
             <MaterialIcons name="my-location" size={24} color="#1F2937" />
           </Pressable>
         </View>
       </View>
 
       {/* Bottom Info Section */}
-      <View
+      <Surface
         style={[
           styles.bottomSection,
           { paddingBottom: insets.bottom + 24 },
         ]}
+        elevation={0}
       >
-        <Text style={styles.timeLeft}>10 minutes left</Text>
-        <Text style={styles.deliveryTo}>Delivery to {getShortAddress()}</Text>
+        <Text variant="headlineSmall" style={styles.timeLeft}>
+          10 minutes left
+        </Text>
+        <Text variant="bodyLarge" style={styles.deliveryTo}>
+          Delivery to {getShortAddress()}
+        </Text>
 
         {/* Progress Bar */}
         <View style={styles.progressBar}>
@@ -116,7 +115,7 @@ export default function DeliveryScreen() {
         </View>
 
         {/* Delivery Status Card */}
-        <View style={styles.statusCard}>
+        <Surface style={styles.statusCard} elevation={0}>
           <View style={styles.scooterIcon}>
             <MaterialCommunityIcons
               name="moped"
@@ -125,27 +124,33 @@ export default function DeliveryScreen() {
             />
           </View>
           <View style={styles.statusContent}>
-            <Text style={styles.statusTitle}>Delivered your order</Text>
-            <Text style={styles.statusDesc}>
+            <Text variant="titleMedium" style={styles.statusTitle}>
+              Delivered your order
+            </Text>
+            <Text variant="bodyMedium" style={styles.statusDesc}>
               We will deliver your goods to you in the shortest possible time.
             </Text>
           </View>
-        </View>
+        </Surface>
 
         {/* Courier Card */}
-        <View style={styles.courierCard}>
+        <Surface style={styles.courierCard} elevation={0}>
           <View style={styles.courierAvatar}>
             <MaterialIcons name="person" size={32} color="#9CA3AF" />
           </View>
           <View style={styles.courierInfo}>
-            <Text style={styles.courierName}>Brooklyn Simmons</Text>
-            <Text style={styles.courierRole}>Personal Courier</Text>
+            <Text variant="titleMedium" style={styles.courierName}>
+              Brooklyn Simmons
+            </Text>
+            <Text variant="bodyMedium" style={styles.courierRole}>
+              Personal Courier
+            </Text>
           </View>
           <Pressable style={styles.callButton}>
             <MaterialIcons name="call" size={24} color="#FFFFFF" />
           </Pressable>
-        </View>
-      </View>
+        </Surface>
+      </Surface>
     </View>
   );
 }
@@ -158,10 +163,6 @@ const styles = StyleSheet.create({
   mapContainer: {
     width: "100%",
     position: "relative",
-  },
-  map: {
-    width: "100%",
-    height: "100%",
   },
   mapControls: {
     position: "absolute",
@@ -190,13 +191,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   timeLeft: {
-    fontSize: 24,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
     marginBottom: 4,
   },
   deliveryTo: {
-    fontSize: 15,
     color: "#6B7280",
     marginBottom: 12,
   },
@@ -238,13 +237,11 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   statusTitle: {
-    fontSize: 16,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
     marginBottom: 4,
   },
   statusDesc: {
-    fontSize: 14,
     color: "#6B7280",
     lineHeight: 20,
   },
@@ -270,13 +267,11 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   courierName: {
-    fontSize: 16,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
     marginBottom: 2,
   },
   courierRole: {
-    fontSize: 14,
     color: "#6B7280",
   },
   callButton: {

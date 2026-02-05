@@ -7,10 +7,15 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  Button,
+  SegmentedButtons,
+  Surface,
+  Text,
+} from "react-native-paper";
 
 import { useAddressStore } from "@/store/address";
 import { useCartStore } from "@/store/cart";
@@ -49,7 +54,7 @@ export default function OrderScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <Surface style={[styles.container, { paddingTop: insets.top }]} elevation={0}>
       <StatusBar style="dark" />
 
       {/* Header */}
@@ -57,7 +62,9 @@ export default function OrderScreen() {
         <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12}>
           <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </Pressable>
-        <Text style={styles.headerTitle}>Order</Text>
+        <Text variant="titleLarge" style={styles.headerTitle}>
+          Order
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -69,77 +76,66 @@ export default function OrderScreen() {
         ]}
       >
         {/* Deliver / Pick Up Toggle */}
-        <View style={styles.toggleContainer}>
-          <Pressable
-            style={[
-              styles.toggleButton,
-              deliveryType === "deliver" && styles.toggleButtonActive,
-            ]}
-            onPress={() => setDeliveryType("deliver")}
-          >
-            <Text
-              style={[
-                styles.toggleText,
-                deliveryType === "deliver" && styles.toggleTextActive,
-              ]}
-            >
-              Deliver
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[
-              styles.toggleButton,
-              deliveryType === "pickup" && styles.toggleButtonActive,
-            ]}
-            onPress={() => setDeliveryType("pickup")}
-          >
-            <Text
-              style={[
-                styles.toggleText,
-                deliveryType === "pickup" && styles.toggleTextActive,
-              ]}
-            >
-              Pick Up
-            </Text>
-          </Pressable>
-        </View>
+        <SegmentedButtons
+          value={deliveryType}
+          onValueChange={(v) => setDeliveryType(v as "deliver" | "pickup")}
+          buttons={[
+            { value: "deliver", label: "Deliver" },
+            { value: "pickup", label: "Pick Up" },
+          ]}
+          style={styles.toggleContainer}
+        />
 
         {/* Delivery Address */}
         {deliveryType === "deliver" && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Delivery Address</Text>
-            <View style={styles.addressCard}>
-              <Text style={styles.addressLine}>{shortAddress}</Text>
-              <Text style={styles.addressLine}>{displayAddress}</Text>
+            <Text variant="titleMedium" style={styles.sectionTitle}>
+              Delivery Address
+            </Text>
+            <Surface style={styles.addressCard} elevation={0}>
+              <Text variant="bodyMedium" style={styles.addressLine}>
+                {shortAddress}
+              </Text>
+              <Text variant="bodyMedium" style={styles.addressLine}>
+                {displayAddress}
+              </Text>
               <View style={styles.addressButtons}>
                 <Pressable
                   style={styles.addressButton}
                   onPress={() => router.push("/edit-address")}
                 >
                   <MaterialIcons name="edit" size={18} color={COFFEE_TINT} />
-                  <Text style={styles.addressButtonText}>Edit Address</Text>
+                  <Text variant="labelLarge" style={styles.addressButtonText}>
+                    Edit Address
+                  </Text>
                 </Pressable>
                 <Pressable style={styles.addressButton}>
                   <MaterialIcons name="note-add" size={18} color={COFFEE_TINT} />
-                  <Text style={styles.addressButtonText}>Add Note</Text>
+                  <Text variant="labelLarge" style={styles.addressButtonText}>
+                    Add Note
+                  </Text>
                 </Pressable>
               </View>
-            </View>
+            </Surface>
           </View>
         )}
 
         {/* Order Items */}
         <View style={styles.section}>
           {items.map((item) => (
-            <View key={item.id} style={styles.orderItem}>
+            <Surface key={item.id} style={styles.orderItem} elevation={0}>
               <Image
                 source={item.image}
                 style={styles.orderItemImage}
                 contentFit="cover"
               />
               <View style={styles.orderItemDetails}>
-                <Text style={styles.orderItemName}>{item.name}</Text>
-                <Text style={styles.orderItemDesc}>{item.description}</Text>
+                <Text variant="titleMedium" style={styles.orderItemName}>
+                  {item.name}
+                </Text>
+                <Text variant="bodySmall" style={styles.orderItemDesc}>
+                  {item.description}
+                </Text>
                 <View style={styles.quantityRow}>
                   <Pressable
                     style={styles.quantityBtn}
@@ -149,7 +145,9 @@ export default function OrderScreen() {
                   >
                     <MaterialIcons name="remove" size={20} color="#6B7280" />
                   </Pressable>
-                  <Text style={styles.quantityValue}>{item.quantity}</Text>
+                  <Text variant="titleMedium" style={styles.quantityValue}>
+                    {item.quantity}
+                  </Text>
                   <Pressable
                     style={styles.quantityBtn}
                     onPress={() =>
@@ -160,32 +158,42 @@ export default function OrderScreen() {
                   </Pressable>
                 </View>
               </View>
-            </View>
+            </Surface>
           ))}
         </View>
 
         {/* Discount */}
-        <Pressable style={styles.discountBanner}>
+        <Surface style={styles.discountBanner} elevation={0}>
           <MaterialIcons name="local-offer" size={22} color={COFFEE_TINT} />
-          <Text style={styles.discountText}>1 Discount is Applies</Text>
+          <Text variant="titleMedium" style={styles.discountText}>
+            1 Discount is Applies
+          </Text>
           <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
-        </Pressable>
+        </Surface>
 
         {/* Payment Summary */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Payment Summary</Text>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            Payment Summary
+          </Text>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Price</Text>
-            <Text style={styles.summaryValue}>$ {subtotal.toFixed(2)}</Text>
+            <Text variant="bodyMedium" style={styles.summaryLabel}>
+              Price
+            </Text>
+            <Text variant="bodyMedium" style={styles.summaryValue}>
+              $ {subtotal.toFixed(2)}
+            </Text>
           </View>
           {deliveryType === "deliver" && (
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Delivery Fee</Text>
+              <Text variant="bodyMedium" style={styles.summaryLabel}>
+                Delivery Fee
+              </Text>
               <View style={styles.deliveryFeeRow}>
-                <Text style={styles.deliveryFeeOriginal}>
+                <Text variant="bodyMedium" style={styles.deliveryFeeOriginal}>
                   $ {DELIVERY_FEE_ORIGINAL.toFixed(1)}
                 </Text>
-                <Text style={styles.summaryValue}>
+                <Text variant="bodyMedium" style={styles.summaryValue}>
                   $ {DELIVERY_FEE_DISCOUNTED.toFixed(1)}
                 </Text>
               </View>
@@ -195,39 +203,43 @@ export default function OrderScreen() {
 
         {/* Payment Method */}
         <View style={styles.paymentSection}>
-          <Pressable style={styles.paymentMethod}>
+          <Surface style={styles.paymentMethod} elevation={0}>
             <MaterialIcons name="account-balance-wallet" size={24} color={COFFEE_TINT} />
             <View style={styles.paymentMethodInfo}>
-              <Text style={styles.paymentMethodLabel}>Cash/Wallet</Text>
-              <Text style={styles.paymentTotal}>$ {total.toFixed(2)}</Text>
+              <Text variant="titleMedium" style={styles.paymentMethodLabel}>
+                Cash/Wallet
+              </Text>
+              <Text variant="headlineSmall" style={styles.paymentTotal}>
+                $ {total.toFixed(2)}
+              </Text>
             </View>
             <MaterialIcons name="keyboard-arrow-down" size={24} color="#9CA3AF" />
-          </Pressable>
+          </Surface>
         </View>
       </ScrollView>
 
       {/* Order Button */}
-      <View
+      <Surface
         style={[
           styles.bottomBar,
           { paddingBottom: insets.bottom + 16 },
         ]}
+        elevation={2}
       >
-        <Pressable
-          style={({ pressed }) => [
-            styles.orderButton,
-            pressed && styles.orderButtonPressed,
-          ]}
+        <Button
+          mode="contained"
           onPress={() => {
             isPlacingOrder.current = true;
             router.replace("/delivery");
             clearCart();
           }}
+          buttonColor={COFFEE_TINT}
+          style={styles.orderButton}
         >
-          <Text style={styles.orderButtonText}>Order</Text>
-        </Pressable>
-      </View>
-    </View>
+          Order
+        </Button>
+      </Surface>
+    </Surface>
   );
 }
 
@@ -249,9 +261,8 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
   },
   headerSpacer: {
     width: 32,
@@ -260,41 +271,14 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   toggleContainer: {
-    flexDirection: "row",
-    backgroundColor: "#F3F4F6",
-    borderRadius: 12,
-    padding: 4,
     marginBottom: 24,
-  },
-  toggleButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-    borderRadius: 10,
-  },
-  toggleButtonActive: {
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  toggleText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#6B7280",
-  },
-  toggleTextActive: {
-    color: COFFEE_TINT,
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
     marginBottom: 12,
   },
   addressCard: {
@@ -305,7 +289,6 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
   },
   addressLine: {
-    fontSize: 15,
     color: "#374151",
     marginBottom: 4,
   },
@@ -320,9 +303,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   addressButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
     color: COFFEE_TINT,
+    fontWeight: "600",
   },
   orderItem: {
     flexDirection: "row",
@@ -345,13 +327,11 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   orderItemName: {
-    fontSize: 16,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
     marginBottom: 2,
   },
   orderItemDesc: {
-    fontSize: 13,
     color: "#6B7280",
     marginBottom: 12,
   },
@@ -368,9 +348,8 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   quantityValue: {
-    fontSize: 15,
-    fontWeight: "600",
     color: "#1F2937",
+    fontWeight: "600",
     minWidth: 24,
     textAlign: "center",
   },
@@ -387,9 +366,8 @@ const styles = StyleSheet.create({
   },
   discountText: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: "600",
     color: "#92400E",
+    fontWeight: "600",
   },
   summaryRow: {
     flexDirection: "row",
@@ -398,13 +376,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   summaryLabel: {
-    fontSize: 15,
     color: "#6B7280",
   },
   summaryValue: {
-    fontSize: 15,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
   },
   deliveryFeeRow: {
     flexDirection: "row",
@@ -412,7 +388,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   deliveryFeeOriginal: {
-    fontSize: 15,
     color: "#9CA3AF",
     textDecorationLine: "line-through",
   },
@@ -433,14 +408,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   paymentMethodLabel: {
-    fontSize: 16,
-    fontWeight: "600",
     color: "#1F2937",
+    fontWeight: "600",
   },
   paymentTotal: {
-    fontSize: 20,
-    fontWeight: "700",
     color: COFFEE_TINT,
+    fontWeight: "700",
     marginTop: 4,
   },
   bottomBar: {
@@ -455,18 +428,6 @@ const styles = StyleSheet.create({
     borderTopColor: "#F3F4F6",
   },
   orderButton: {
-    paddingVertical: 18,
-    borderRadius: 14,
-    backgroundColor: COFFEE_TINT,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  orderButtonPressed: {
-    opacity: 0.9,
-  },
-  orderButtonText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#FFFFFF",
+    paddingVertical: 6,
   },
 });

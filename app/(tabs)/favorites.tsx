@@ -1,22 +1,19 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Surface, Text } from "react-native-paper";
 
 export default function FavoritesScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Favorites</Text>
-    </View>
+    <Surface
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#F5F5F0",
+      }}
+      elevation={0}
+    >
+      <Text variant="titleLarge" style={{ color: "#333" }}>
+        Favorites
+      </Text>
+    </Surface>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F5F5F0",
-  },
-  text: {
-    fontSize: 18,
-    color: "#333",
-  },
-});

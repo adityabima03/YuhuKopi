@@ -4,17 +4,20 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  Button,
+  Surface,
+  Text,
+  TextInput,
+} from "react-native-paper";
 
 import { useAddressStore } from "@/store/address";
 
@@ -91,7 +94,6 @@ export default function EditAddressScreen() {
     }
   };
 
-  // Default dari location now saat address kosong
   useEffect(() => {
     if (address || hasFetchedInitial.current) return;
     hasFetchedInitial.current = true;
@@ -130,65 +132,64 @@ export default function EditAddressScreen() {
         <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12}>
           <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </Pressable>
-        <Text style={styles.headerTitle}>Edit Address</Text>
+        <Text variant="titleLarge" style={styles.headerTitle}>
+          Edit Address
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
 
-      <View style={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
-        <Text style={styles.label}>Street / Main Address</Text>
+      <Surface style={[styles.content, { paddingBottom: insets.bottom + 24 }]} elevation={0}>
+        <Text variant="labelLarge" style={styles.label}>
+          Street / Main Address
+        </Text>
         <TextInput
-          style={styles.input}
+          mode="outlined"
           value={street}
           onChangeText={setStreet}
           placeholder="Street name"
-          placeholderTextColor="#9CA3AF"
-          autoCapitalize="words"
+          style={styles.input}
+          outlineColor="#E5E7EB"
+          activeOutlineColor={COFFEE_TINT}
         />
 
-        <Text style={styles.label}>Full Address</Text>
+        <Text variant="labelLarge" style={styles.label}>
+          Full Address
+        </Text>
         <TextInput
-          style={[styles.input, styles.inputMultiline]}
+          mode="outlined"
           value={fullAddress}
           onChangeText={setFullAddress}
           placeholder="Street, city, region"
-          placeholderTextColor="#9CA3AF"
           multiline
           numberOfLines={3}
+          style={[styles.input, styles.inputMultiline]}
+          outlineColor="#E5E7EB"
+          activeOutlineColor={COFFEE_TINT}
         />
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.useLocationButton,
-            (isLoadingLocation || pressed) && styles.useLocationButtonPressed,
-          ]}
+        <Button
+          mode="outlined"
           onPress={fetchLocationNow}
           disabled={isLoadingLocation}
+          style={styles.useLocationButton}
+          textColor={COFFEE_TINT}
+          icon={isLoadingLocation ? undefined : "crosshairs-gps"}
+          loading={isLoadingLocation}
         >
-          {isLoadingLocation ? (
-            <ActivityIndicator size="small" color={COFFEE_TINT} />
-          ) : (
-            <>
-              <MaterialIcons name="my-location" size={20} color={COFFEE_TINT} />
-              <Text style={styles.useLocationText}>Use Current Location</Text>
-            </>
-          )}
-        </Pressable>
+          Use Current Location
+        </Button>
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.saveButton,
-            (isSaving || pressed) && styles.saveButtonPressed,
-          ]}
+        <Button
+          mode="contained"
           onPress={handleSave}
           disabled={isSaving}
+          buttonColor={COFFEE_TINT}
+          style={styles.saveButton}
+          loading={isSaving}
         >
-          {isSaving ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.saveButtonText}>Save Address</Text>
-          )}
-        </Pressable>
-      </View>
+          Save Address
+        </Button>
+      </Surface>
     </KeyboardAvoidingView>
   );
 }
@@ -211,9 +212,8 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
   },
   headerSpacer: {
     width: 32,
@@ -223,58 +223,22 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   label: {
-    fontSize: 14,
-    fontWeight: "600",
     color: "#374151",
     marginBottom: 8,
   },
   input: {
     backgroundColor: "#F9FAFB",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: "#1F2937",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
     marginBottom: 20,
   },
   inputMultiline: {
     minHeight: 80,
-    textAlignVertical: "top",
   },
   useLocationButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    marginBottom: 24,
-    borderWidth: 1,
     borderColor: COFFEE_TINT,
-    borderRadius: 12,
-  },
-  useLocationButtonPressed: {
-    opacity: 0.8,
-  },
-  useLocationText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COFFEE_TINT,
+    marginBottom: 24,
   },
   saveButton: {
     marginTop: 16,
-    paddingVertical: 18,
-    borderRadius: 14,
-    backgroundColor: COFFEE_TINT,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  saveButtonPressed: {
-    opacity: 0.9,
-  },
-  saveButtonText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#FFFFFF",
+    paddingVertical: 6,
   },
 });

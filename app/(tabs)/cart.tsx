@@ -6,9 +6,14 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import {
+  Button,
+  IconButton,
+  Surface,
+  Text,
+} from "react-native-paper";
 
 import { useCartStore } from "@/store/cart";
 
@@ -22,21 +27,27 @@ export default function CartScreen() {
 
   if (items.length === 0) {
     return (
-      <View style={[styles.emptyContainer, { paddingTop: insets.top }]}>
+      <Surface style={[styles.emptyContainer, { paddingTop: insets.top }]} elevation={0}>
         <MaterialIcons name="shopping-cart" size={80} color="#D1D5DB" />
-        <Text style={styles.emptyTitle}>Keranjang Kosong</Text>
-        <Text style={styles.emptyText}>
+        <Text variant="headlineSmall" style={styles.emptyTitle}>
+          Keranjang Kosong
+        </Text>
+        <Text variant="bodyLarge" style={styles.emptyText}>
           Tambahkan kopi favorit Anda dari menu Home
         </Text>
-      </View>
+      </Surface>
     );
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <Surface style={[styles.container, { paddingTop: insets.top }]} elevation={0}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Cart</Text>
-        <Text style={styles.itemCount}>{items.length} item</Text>
+        <Text variant="headlineMedium" style={styles.headerTitle}>
+          Cart
+        </Text>
+        <Text variant="bodyMedium" style={styles.itemCount}>
+          {items.length} item
+        </Text>
       </View>
 
       <ScrollView
@@ -48,73 +59,84 @@ export default function CartScreen() {
         showsVerticalScrollIndicator={false}
       >
         {items.map((item) => (
-          <View key={item.id} style={styles.cartItem}>
+          <Surface key={item.id} style={styles.cartItem} elevation={0}>
             <Image
               source={item.image}
               style={styles.itemImage}
               contentFit="cover"
             />
             <View style={styles.itemDetails}>
-              <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemMeta}>
+              <Text variant="titleMedium" style={styles.itemName}>
+                {item.name}
+              </Text>
+              <Text variant="bodySmall" style={styles.itemMeta}>
                 Size {item.size} • $ {item.price}
               </Text>
               <View style={styles.quantityRow}>
                 <View style={styles.quantityControls}>
-                  <Pressable
+                  <IconButton
+                    icon="minus"
+                    size={20}
+                    iconColor="#6B7280"
                     style={styles.quantityButton}
                     onPress={() =>
                       updateQuantity(item.id, item.quantity - 1)
                     }
-                  >
-                    <MaterialIcons name="remove" size={20} color="#6B7280" />
-                  </Pressable>
-                  <Text style={styles.quantityText}>{item.quantity}</Text>
-                  <Pressable
+                  />
+                  <Text variant="titleMedium" style={styles.quantityText}>
+                    {item.quantity}
+                  </Text>
+                  <IconButton
+                    icon="plus"
+                    size={20}
+                    iconColor="#6B7280"
                     style={styles.quantityButton}
                     onPress={() =>
                       updateQuantity(item.id, item.quantity + 1)
                     }
-                  >
-                    <MaterialIcons name="add" size={20} color="#6B7280" />
-                  </Pressable>
+                  />
                 </View>
-                <Text style={styles.itemTotal}>
+                <Text variant="titleMedium" style={styles.itemTotal}>
                   $ {(parseFloat(item.price) * item.quantity).toFixed(2)}
                 </Text>
               </View>
             </View>
-            <Pressable
+            <IconButton
+              icon="delete-outline"
+              size={22}
+              iconColor="#EF4444"
               style={styles.removeButton}
               onPress={() => removeItem(item.id)}
-            >
-              <MaterialIcons name="delete-outline" size={22} color="#EF4444" />
-            </Pressable>
-          </View>
+            />
+          </Surface>
         ))}
       </ScrollView>
 
-      <View
+      <Surface
         style={[
           styles.bottomBar,
           { paddingBottom: insets.bottom + 16 },
         ]}
+        elevation={2}
       >
         <View>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>$ {total.toFixed(2)}</Text>
+          <Text variant="bodySmall" style={styles.totalLabel}>
+            Total
+          </Text>
+          <Text variant="headlineSmall" style={styles.totalValue}>
+            $ {total.toFixed(2)}
+          </Text>
         </View>
-        <Pressable
-          style={({ pressed }) => [
-            styles.checkoutButton,
-            pressed && styles.checkoutButtonPressed,
-          ]}
+        <Button
+          mode="contained"
           onPress={() => router.push("/order")}
+          buttonColor={COFFEE_TINT}
+          style={styles.checkoutButton}
         >
-          <Text style={styles.checkoutButtonText}>Checkout</Text>
-        </Pressable>
-      </View>
-    </View>
+          Checkout
+        </Button>
+      </Surface>
+    </Surface>
   );
 }
 
@@ -131,14 +153,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyTitle: {
-    fontSize: 22,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
     marginTop: 24,
     marginBottom: 8,
   },
   emptyText: {
-    fontSize: 16,
     color: "#6B7280",
     textAlign: "center",
   },
@@ -149,12 +169,10 @@ const styles = StyleSheet.create({
     borderBottomColor: "#F3F4F6",
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
   },
   itemCount: {
-    fontSize: 14,
     color: "#6B7280",
     marginTop: 4,
   },
@@ -183,13 +201,11 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   itemName: {
-    fontSize: 16,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
     marginBottom: 4,
   },
   itemMeta: {
-    fontSize: 13,
     color: "#6B7280",
     marginBottom: 12,
   },
@@ -207,22 +223,20 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
   },
   quantityButton: {
-    padding: 8,
+    margin: 0,
   },
   quantityText: {
-    fontSize: 15,
-    fontWeight: "600",
     color: "#1F2937",
+    fontWeight: "600",
     minWidth: 28,
     textAlign: "center",
   },
   itemTotal: {
-    fontSize: 16,
-    fontWeight: "700",
     color: COFFEE_TINT,
+    fontWeight: "700",
   },
   removeButton: {
-    padding: 8,
+    margin: 0,
     marginLeft: 8,
   },
   bottomBar: {
@@ -240,29 +254,14 @@ const styles = StyleSheet.create({
     borderTopColor: "#F3F4F6",
   },
   totalLabel: {
-    fontSize: 14,
     color: "#6B7280",
     marginBottom: 2,
   },
   totalValue: {
-    fontSize: 24,
-    fontWeight: "700",
     color: "#1F2937",
+    fontWeight: "700",
   },
   checkoutButton: {
-    paddingVertical: 16,
     paddingHorizontal: 32,
-    borderRadius: 14,
-    backgroundColor: COFFEE_TINT,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkoutButtonPressed: {
-    opacity: 0.9,
-  },
-  checkoutButtonText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#FFFFFF",
   },
 });
